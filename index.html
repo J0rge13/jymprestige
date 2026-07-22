@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>J&M Prestige | Control de Inventario & Cotización</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@500;700&family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --bg-main: #0B0C10;
+      --bg-card: #14161D;
+      --bg-input: #1C1F2B;
+      --gold-primary: #D4AF37;
+      --gold-gradient: linear-gradient(135deg, #BF953F 0%, #FCF6BA 25%, #B38728 50%, #FBF5B7 75%, #AA771C 100%);
+      --gold-soft: #e2c055;
+      --text-main: #F0F2F5;
+      --text-muted: #8E95A5;
+      --border-color: rgba(212, 175, 55, 0.25);
+      --danger: #FF4D4D;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-main);
+      min-height: 100vh;
+      padding: 2rem 1rem;
+      background-image: radial-gradient(circle at 50% 0%, rgba(212, 175, 55, 0.08) 0%, transparent 60%);
+    }
+
+    .container { max-width: 1280px; margin: 0 auto; display: flex; flex-direction: column; gap: 2rem; }
+
+    header { text-align: center; padding: 1.5rem 0; border-bottom: 1px solid var(--border-color); }
+    .logo-container img { max-height: 90px; width: auto; filter: drop-shadow(0 0 12px rgba(212, 175, 55, 0.3)); }
+    
+    h1 {
+      font-family: 'Cinzel', serif;
+      letter-spacing: 3px;
+      font-size: 2.2rem;
+      background: var(--gold-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      text-transform: uppercase;
+    }
+
+    .subtitle { color: var(--text-muted); font-size: 0.95rem; margin-top: 0.3rem; }
+
+    .dashboard-grid { display: grid; grid-template-columns: 1fr; gap: 2rem; }
+    @media (min-width: 1024px) { .dashboard-grid { grid-template-columns: 380px 1fr; } }
+
+    .card {
+      background-color: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      padding: 1.8rem;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    }
+
+    .card-title {
+      font-family: 'Cinzel', serif;
+      font-size: 1.25rem;
+      color: var(--gold-primary);
+      margin-bottom: 1.5rem;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      padding-bottom: 0.8rem;
+    }
+
+    .form-group { margin-bottom: 1.2rem; }
+    label { display: block; font-size: 0.85rem; color: var(--text-muted); margin-bottom: 0.4rem; text-transform: uppercase; }
+    input {
+      width: 100%;
+      padding: 0.85rem 1rem;
+      background-color: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-main);
+      font-size: 1rem;
+      outline: none;
+    }
+
+    .calc-preview {
+      background: rgba(212, 175, 55, 0.05);
+      border: 1px dashed var(--border-color);
+      border-radius: 8px;
+      padding: 1rem;
+      margin: 1.5rem 0;
+      text-align: center;
+    }
+    .calc-preview span { display: block; color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
+    .calc-preview strong { font-size: 1.8rem; color: var(--gold-soft); }
+
+    .btn-gold {
+      width: 100%;
+      padding: 0.9rem;
+      border: none;
+      border-radius: 8px;
+      background: var(--gold-gradient);
+      color: #000;
+      font-weight: 700;
+      text-transform: uppercase;
+      cursor: pointer;
+    }
+
+    table { width: 100%; border-collapse: collapse; text-align: left; }
+    th { font-family: 'Cinzel', serif; color: var(--gold-primary); font-size: 0.85rem; padding: 1rem; border-bottom: 2px solid var(--border-color); }
+    td { padding: 1rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
+
+    .btn-delete {
+      background: transparent;
+      border: 1px solid var(--danger);
+      color: var(--danger);
+      padding: 0.3rem 0.6rem;
+      border-radius: 6px;
+      cursor: pointer;
+    }
+
+    .total-box {
+      margin-top: 1.5rem;
+      padding: 1.2rem;
+      background-color: var(--bg-input);
+      border-radius: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-left: 4px solid var(--gold-primary);
+    }
+
+    .gold-widget-container { width: 100%; height: 480px; border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color); }
+    iframe { width: 100%; height: 100%; border: none; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <header>
+      <div class="logo-container">
+        <img src="logo.png" alt="J&M Prestige Logo" onerror="this.style.display='none';">
+      </div>
+      <h1>J&M PRESTIGE</h1>
+      <p class="subtitle">Inventario Compartido en Nube (Google Sheets) & Cotización de Oro 18K</p>
+    </header>
+
+    <div class="dashboard-grid">
+      <section class="card">
+        <h2 class="card-title">✨ Agregar Joya</h2>
+        <form id="inventory-form">
+          <div class="form-group">
+            <label for="item-name">Descripción de la Pieza</label>
+            <input type="text" id="item-name" placeholder="Ej: Cadena Tejido Chino 18k" required>
+          </div>
+          <div class="form-group">
+            <label for="item-weight">Gramaje (Gramos)</label>
+            <input type="number" id="item-weight" step="0.01" min="0" placeholder="0.00" required>
+          </div>
+          <div class="form-group">
+            <label for="item-price-gram">Precio por Gramo ($)</label>
+            <input type="number" id="item-price-gram" step="0.01" min="0" placeholder="0.00" required>
+          </div>
+          <div class="calc-preview">
+            <span>Subtotal Estimado</span>
+            <strong id="preview-total">$0.00</strong>
+          </div>
+          <button type="submit" class="btn-gold" id="btn-submit">Registrar en Inventario</button>
+        </form>
+      </section>
+
+      <section class="card">
+        <h2 class="card-title" style="display:flex; justify-content:space-between; align-items:center;">
+          <span>💎 Inventario Registrado</span>
+          <button onclick="fetchInventory()" style="background:none; border:none; color:var(--gold-soft); cursor:pointer; font-size:0.8rem;">🔄 Sincronizar</button>
+        </h2>
+        <div class="table-container">
+          <table>
+            <thead>
+              <tr>
+                <th>Pieza</th>
+                <th>Peso (g)</th>
+                <th>Precio / g</th>
+                <th>Valor Total</th>
+                <th>Acción</th>
+              </tr>
+            </thead>
+            <tbody id="inventory-table-body">
+              <tr><td colspan="5" style="text-align:center;">Cargando inventario desde la nube...</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="total-box">
+          <span>Valor Total del Inventario:</span>
+          <strong id="grand-total">$0.00</strong>
+        </div>
+      </section>
+    </div>
+
+    <section class="card">
+      <h2 class="card-title">📈 Cotización del Oro en Tiempo Real</h2>
+      <div class="gold-widget-container">
+        <iframe src="https://s.tradingview.com/widgetembed/?frameElementId=tradingview_1&symbol=OANDA%3AXAUUSD&interval=D&hidesidetoolbar=1&symboledit=1&saveimage=1&toolbarbg=0B0C10&theme=dark&style=1&timezone=Etc%2FUTC&studies=[]&theme=dark" allowtransparency="true" scrolling="no"></iframe>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // ⚠️ PEGA AQUÍ LA URL QUE OBTUVISTE EN GOOGLE APPS SCRIPT
+    const API_URL = "https://script.google.com/macros/s/AKfycbxAVZYQotPQTD8EpyQghqdKyca_T2RLv37w4NQhUoSqEDN0XEcVeH-Zma6jrMqa4pTS/exec";
+
+    const form = document.getElementById('inventory-form');
+    const inputWeight = document.getElementById('item-weight');
+    const inputPriceGram = document.getElementById('item-price-gram');
+    const previewTotal = document.getElementById('preview-total');
+    const tableBody = document.getElementById('inventory-table-body');
+    const grandTotalEl = document.getElementById('grand-total');
+
+    const formatCurrency = (val) => {
+      return new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format(val);
+    };
+
+    function updatePreview() {
+      const weight = parseFloat(inputWeight.value) || 0;
+      const priceGram = parseFloat(inputPriceGram.value) || 0;
+      previewTotal.textContent = formatCurrency(weight * priceGram);
+    }
+
+    inputWeight.addEventListener('input', updatePreview);
+    inputPriceGram.addEventListener('input', updatePreview);
+
+    // Obtener inventario desde Google Sheets
+    async function fetchInventory() {
+      tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">Cargando inventario...</td></tr>';
+      try {
+        const res = await fetch(API_URL);
+        const data = await res.json();
+        renderTable(data);
+      } catch (err) {
+        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center; color:red;">Error al conectar con la nube. Revisa la URL de la API.</td></tr>';
+      }
+    }
+
+    // Agregar joya a la nube
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-submit');
+      btn.textContent = "Guardando...";
+      btn.disabled = true;
+
+      const newItem = {
+        action: "add",
+        id: Date.now(),
+        name: document.getElementById('item-name').value,
+        weight: parseFloat(inputWeight.value),
+        priceGram: parseFloat(inputPriceGram.value),
+        total: parseFloat(inputWeight.value) * parseFloat(inputPriceGram.value)
+      };
+
+      await fetch(API_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newItem)
+      });
+
+      form.reset();
+      updatePreview();
+      btn.textContent = "Registrar en Inventario";
+      btn.disabled = false;
+      setTimeout(fetchInventory, 1000); // Recargar datos
+    });
+
+    // Eliminar joya
+    async function deleteItem(id) {
+      if(!confirm("¿Deseas eliminar este registro?")) return;
+      
+      await fetch(API_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: "delete", id: id })
+      });
+
+      setTimeout(fetchInventory, 1000);
+    }
+
+    function renderTable(inventory) {
+      tableBody.innerHTML = '';
+      let grandTotal = 0;
+
+      if (!inventory || inventory.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5" style="text-align:center;">No hay joyas en la base de datos.</td></tr>';
+        grandTotalEl.textContent = formatCurrency(0);
+        return;
+      }
+
+      inventory.forEach((item) => {
+        const total = parseFloat(item.total) || 0;
+        grandTotal += total;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+          <td style="font-weight:600;">${item.name}</td>
+          <td>${parseFloat(item.weight).toFixed(2)} g</td>
+          <td>${formatCurrency(item.priceGram)}</td>
+          <td style="color:var(--gold-soft); font-weight:700;">${formatCurrency(total)}</td>
+          <td><button class="btn-delete" onclick="deleteItem(${item.id})">Eliminar</button></td>
+        `;
+        tableBody.appendChild(row);
+      });
+
+      grandTotalEl.textContent = formatCurrency(grandTotal);
+    }
+
+    fetchInventory();
+  </script>
+</body>
+</html>
